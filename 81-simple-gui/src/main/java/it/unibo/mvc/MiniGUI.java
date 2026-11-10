@@ -52,8 +52,6 @@ public class MiniGUI {
         resultPanel.add(label);
         resultPanel.add(textfield);
         canvas.add(resultPanel, BorderLayout.NORTH);
-
-
         /*
          * Handlers
          */
@@ -65,9 +63,6 @@ public class MiniGUI {
                 textfield.setText(String.valueOf(n));
             }
         });
-
-       
-
     }
 
     private void display() {
@@ -99,14 +94,11 @@ public class MiniGUI {
          */
         frame.setVisible(true);
     }
-
-    
-
     /**
      * Launches the application.
      */
+
     public static void main() {
         new MiniGUI().display();
     }
-
 }
