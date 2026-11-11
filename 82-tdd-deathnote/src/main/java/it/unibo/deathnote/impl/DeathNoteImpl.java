@@ -28,7 +28,7 @@ public class DeathNoteImpl implements DeathNote {
         if (name == null) {
             throw new NullPointerException("given name is null, not correct");
         } else {
-            names.add(new DeathImpl(name, DEAFULT_DEATH_CAUSE, null));
+            names.add(new DeathImpl(name, DEAFULT_DEATH_CAUSE, ""));
         }
     }
     @Override
@@ -41,7 +41,7 @@ public class DeathNoteImpl implements DeathNote {
         }
         final DeathImpl last = names.get(names.size() - 1);
         final long now = System.currentTimeMillis();
-        if (now - last.getTimeWritten() <= DEATH_CAUSE_TIMEOUT_MS) {
+        if (now - last.getTimeWritten() <= DEATH_CAUSE_TIMEOUT_MS) {    //40 
             last.setDeath(cause);
             last.setDetailsTime(now);
             return true;

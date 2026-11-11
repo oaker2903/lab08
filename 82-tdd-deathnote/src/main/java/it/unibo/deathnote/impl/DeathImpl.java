@@ -14,9 +14,10 @@ public class DeathImpl {
         this.name = name;
         this.death = death;
         this.details = details;
-        this.writtenTime = System.nanoTime();
-        this.deathTime = System.nanoTime();
-        this.detailsTime = System.nanoTime();
+        final long now = System.currentTimeMillis();
+        this.writtenTime = now;
+        this.deathTime = now;
+        this.detailsTime = now;
     }
 
     public String getName() {
