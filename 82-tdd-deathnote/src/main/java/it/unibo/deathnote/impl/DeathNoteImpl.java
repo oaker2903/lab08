@@ -1,47 +1,67 @@
 package it.unibo.deathnote.impl;
 
-import java.beans.DefaultPersistenceDelegate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import it.unibo.deathnote.api.DeathNote;
 
+/**
+ * Implementation of {@link DeathNote}.
+ *
+ * <p>Names are stored in insertion order. The cause of death and the details
+ * always refer to the last name written, and can be written only within
+ * a limited time window.
+ */
 public class DeathNoteImpl implements DeathNote {
 
-    private static final String DEAFULT_DEATH_CAUSE = "heart attack";
+    /** Cause of death used when none is specified. */
+    private static final String DEFAULT_DEATH_CAUSE = "heart attack";
+    /** Time window (ms) to write the details, counted from the cause of death. */
     private static final long DETAILS_TIMEOUT_MS = 6040;
+    /** Time window (ms) to write the cause of death, counted from the name. */
     private static final long DEATH_CAUSE_TIMEOUT_MS = 40;
-    List<DeathImpl> names = new ArrayList<>();
 
+    private final List<DeathImpl> names = new ArrayList<>();
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public String getRule(int ruleNumber) {
+    public String getRule(final int ruleNumber) {
         if (ruleNumber < 1 || ruleNumber > RULES.size()) {
-            throw new IllegalArgumentException("rule number cannot be smaller than 1 or bigger than rule last number");
-        } else {
-            return RULES.get(ruleNumber - 1);
+            throw new IllegalArgumentException(
+                "Rule number must be between 1 and " + RULES.size() + ": " + ruleNumber);
         }
+        return RULES.get(ruleNumber - 1);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void writeName(String name) {
+    public void writeName(final String name) {
         if (name == null) {
-            throw new NullPointerException("given name is null, not correct");
-        } else {
-            names.add(new DeathImpl(name, DEAFULT_DEATH_CAUSE, ""));
+            throw new IllegalArgumentException("Given name is null");
         }
+        names.add(new DeathImpl(name, DEFAULT_DEATH_CAUSE, ""));
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The cause is accepted only if written within 40 ms from the last name.
+     */
     @Override
-    public boolean writeDeathCause(String cause) {
-        if(cause == null) { 
-            throw new IllegalStateException("given details cannot be null");
+    public boolean writeDeathCause(final String cause) {
+        if (cause == null) {
+            throw new IllegalStateException("Cause cannot be null");
         }
         if (names.isEmpty()) {
             throw new IllegalStateException("No name written in this DeathNote");
         }
         final DeathImpl last = names.get(names.size() - 1);
         final long now = System.currentTimeMillis();
-        if (now - last.getTimeWritten() <= DEATH_CAUSE_TIMEOUT_MS) {    //40 
+        if (now - last.getTimeWritten() <= DEATH_CAUSE_TIMEOUT_MS) {
             last.setDeath(cause);
             last.setDetailsTime(now);
             return true;
@@ -49,39 +69,51 @@ public class DeathNoteImpl implements DeathNote {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The details are accepted only if written within 6 seconds and 40 ms
+     * from the cause of death of the last name.
+     */
     @Override
-    public boolean writeDetails(String details) {
-       if(details == null) { 
-            throw new IllegalStateException("given details cannot be null");
+    public boolean writeDetails(final String details) {
+        if (details == null) {
+            throw new IllegalStateException("Details cannot be null");
         }
         if (names.isEmpty()) {
             throw new IllegalStateException("No name written in this DeathNote");
         }
         final DeathImpl last = names.get(names.size() - 1);
         final long now = System.currentTimeMillis();
-        if (now - last.getTimeWritten() <= DETAILS_TIMEOUT_MS) {
+        if (now - last.getDetailsTime() <= DETAILS_TIMEOUT_MS) {
             last.setDetails(details);
             return true;
         }
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public String getDeathCause(String name) {
+    public String getDeathCause(final String name) {
         for (final DeathImpl human : names) {
-            if(name.equals(human.getName())) {   //nel caso lo trovassi
-                //nel caso cause death non sia specificato
-                if(human.getDeathCause().isEmpty()) {
-                    return DEAFULT_DEATH_CAUSE;
-                } 
+            if (name.equals(human.getName())) {
+                if (human.getDeathCause().isEmpty()) {
+                    return DEFAULT_DEATH_CAUSE;
+                }
                 return human.getDeathCause();
             }
-        }    
+        }
         throw new IllegalArgumentException("Name not present in the death note: " + name);
     }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public String getDeathDetails(String name) {
-       for (final DeathImpl human : names) {
+    public String getDeathDetails(final String name) {
+        for (final DeathImpl human : names) {
             if (name.equals(human.getName())) {
                 return human.getDetails();
             }
@@ -89,12 +121,15 @@ public class DeathNoteImpl implements DeathNote {
         throw new IllegalArgumentException("Name not present in the death note: " + name);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public boolean isNameWritten(String name) {
-        for (DeathImpl human : names) {
-                if (human.getName().equals(name)) {
-                    return true;
-                }
+    public boolean isNameWritten(final String name) {
+        for (final DeathImpl human : names) {
+            if (human.getName().equals(name)) {
+                return true;
+            }
         }
         return false;
     }
